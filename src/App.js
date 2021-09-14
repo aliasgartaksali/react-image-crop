@@ -1,23 +1,71 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
-function App() {
+function App({ }) {
+  const [src, selectFile] = useState(null);
+  const [image, setImage] = useState(null);
+  const [result, setResult] = useState(null);
+  const [crop, setCrop] = useState({ aspect: 1 / 1 })
+  const handleFileChange = e => {
+    selectFile(URL.createObjectURL(e.target.files[0]))
+  }
+
+  const getCroppedImg = () => {
+    const canvas = document.createElement("canvas");
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    canvas.width = crop.width;
+    canvas.height = crop.height;
+    const ctx = canvas.getContext("2d");
+
+    // New lines to be added
+    // const pixelRatio = window.devicePixelRatio;
+    // canvas.width = crop.width * pixelRatio;
+    // canvas.height = crop.height * pixelRatio;
+    // ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    // ctx.imageSmoothingQuality = "high";
+
+    ctx.drawImage(
+      image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      crop.width,
+      crop.height
+    );
+
+    const base64Image = canvas.toDataURL('image/jpeg');
+    console.log("Canvas equals", canvas)
+    setResult(base64Image);
+    // canvas.toBlob(blob => {
+    //   console.log("Blob equals", blob)     
+    //   setResult(blob);
+    // })
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div className="container">
+        <div className="row">
+          <div className="col-6">
+            <input type="file" accept="image/*" onChange={handleFileChange} />
+          </div>
+          {src && <div className="col-6">
+            <ReactCrop src={src} onImageLoaded={setImage} crop={crop} onChange={setCrop} />
+            <button className="btn btn-danger" onClick={getCroppedImg}>Crop Image</button>
+          </div>}
+          {result && (
+            <div className="col-6">
+              <img src={result} alt="Cropped Image" className="img-fluid" />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
